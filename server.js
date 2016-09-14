@@ -26,10 +26,11 @@ io.on('connection', function (socket) {
         socket.broadcast.emit('message', user, message);
     });
     
-    //broadcast user typing alert to all connected sockets except current
+    //broadcast user typing alert to all connected sockets
     socket.on('typing', function(typer) {
         users[socket.id] = typer;
         socket.broadcast.emit('typing', typer);
+        socket.broadcast.emit('nottyping', typer);
     });
     
     //broadcast user disconnect to all connected sockets

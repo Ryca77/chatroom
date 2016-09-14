@@ -5,6 +5,7 @@ $(document).ready(function() {
     var updates = $('#updates');
     var messages = $('#messages');
     var type = $('#typing');
+    var hideTimeout = null;
     
     $('#message').hide();
     
@@ -25,7 +26,15 @@ $(document).ready(function() {
     
     //function to show typing
     var showTyping = function(typer) {
-        type.append('<div>' + typer + ' is typing' + '</div>');
+        type.html('<div>' + typer + ' is typing' + '</div>');
+    };
+    
+    //function to hide typing
+    var hideTyping = function() {
+        window.clearTimeout(hideTimeout);
+        hideTimeout = setTimeout(function() {
+            type.html('');
+        }, 1000);
     };
     
     //add new users and show updates to all connected sockets
@@ -55,20 +64,22 @@ $(document).ready(function() {
         addMessage(user, message);
         socket.emit('message', user, message);
         $('#message').val('');
+        $('#typing').html('');
         
     });
     
-    //STILL NEED TO GET THIS WORKING
     //show user typing to all connected sockets except current
     message.on('keydown', function(event) {
-        if (event.keyCode !== 13) {
-            return;
+        if (event.keyCode != 13) {
+            
+            var typer = $('#name').val();
+        
+            showTyping(typer);
+            socket.emit('typing', typer);
+            
+            hideTyping();
+            socket.emit('nottyping');
         }
-        
-        var typer = $('#name').val();
-        
-        showTyping(typer);
-        socket.emit('typing', typer);
         
     });
     
@@ -76,5 +87,6 @@ $(document).ready(function() {
     socket.on('update', userUpdate);
     socket.on('message', addMessage);
     socket.on('typing', showTyping);
+    socket.on('nottyping', hideTyping);
     
 })
